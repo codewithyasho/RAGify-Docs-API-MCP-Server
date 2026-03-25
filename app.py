@@ -1,7 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, HttpUrl
+from fastapi.concurrency import run_in_threadpool
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 from main import main
 
 # ========== Initialize FastAPI ==========
@@ -34,12 +34,19 @@ def home():
     return {"message": "Welcome to the RAGify Docs API. Use the /ragify endpoint to ask questions about documentation from a given URL."}
 
 
+rag_cache = {}
+
+
 @app.post("/ragify")
-def ragify(user_input: UserInput):
-    # Initialize the RAG system
+async def ragify(user_input: UserInput):
     try:
         url = user_input.url
-        rag_chain = main(url)
+
+        # 🔥 CACHE + ASYNC SAFE
+        if url not in rag_cache:
+            rag_cache[url] = await run_in_threadpool(main, url)
+
+        rag_chain = rag_cache[url]
 
     except Exception as e:
         raise HTTPException(
@@ -47,9 +54,11 @@ def ragify(user_input: UserInput):
             detail=f"RAG init failed: {str(e)}"
         )
 
-    # Invoke the RAG chain with the user's query
     try:
-        response = rag_chain.invoke({"input": user_input.query})
+        response = await run_in_threadpool(
+            rag_chain.invoke,
+            {"input": user_input.query}
+        )
 
     except Exception as e:
         raise HTTPException(
