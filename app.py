@@ -1,7 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field, HttpUrl
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
 from main import main
 
 # ========== Initialize FastAPI ==========
@@ -24,7 +24,7 @@ app.add_middleware(
 # schema for user input
 class UserInput(BaseModel):
     url: str = Field(..., description="The URL of the Documentation to scrape", examples=[
-                     "https://docs.langchain.com/oss/python/langchain/overview"])
+        "https://docs.langchain.com/oss/python/langchain/overview"])
     query: str = Field(...,
                        description="The question to ask about the scraped content", examples=["What is LangChain?"])
 
@@ -43,7 +43,9 @@ def ragify(user_input: UserInput):
 
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail="Error initializing RAG system")
+            status_code=500,
+            detail=f"RAG init failed: {str(e)}"
+        )
 
     # Invoke the RAG chain with the user's query
     try:
@@ -51,9 +53,11 @@ def ragify(user_input: UserInput):
 
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail="Error invoking RAG chain")
+            status_code=500,
+            detail=f"Error invoking RAG chain: {str(e)}"
+        )
 
     return {
         "answer": response["answer"],
-        "sources": [doc.metadata.get("source") for doc in response["context"]]
+        "sources": list(set(doc.metadata.get("source") for doc in response["context"]))
     }
