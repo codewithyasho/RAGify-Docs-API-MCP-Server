@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAGify Docs</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl bg-gray-800 rounded-2xl shadow-xl p-6">
+
+        <!-- Title -->
+        <h1 class="text-3xl font-bold text-center mb-6">
+            🚀 RAGify Docs
+        </h1>
+
+        <!-- URL Input -->
+        <label class="text-sm mb-2 block">Documentation URL</label>
+        <input id="url" type="text" placeholder="https://docs.langchain.com/..."
+            class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 mb-4 outline-none focus:border-blue-500">
+
+        <!-- Query Input -->
+        <label class="text-sm mb-2 block">Ask Question</label>
+        <input id="query" type="text" placeholder="What is LangChain?"
+            class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 mb-4 outline-none focus:border-green-500">
+
+        <!-- Button -->
+        <button onclick="askQuestion()"
+            class="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-lg font-semibold transition">
+            🤖 Ask AI
+        </button>
+
+        <!-- Status -->
+        <p id="status" class="text-sm text-gray-400 mt-4"></p>
+
+        <!-- Answer Box -->
+        <div id="result" class="mt-6 hidden">
+            <h2 class="font-semibold mb-2">Answer:</h2>
+            <p id="answer" class="text-gray-300 mb-4"></p>
+
+            <h3 class="font-semibold mb-2">Sources:</h3>
+            <ul id="sources" class="text-blue-400 text-sm space-y-1"></ul>
+        </div>
+
+    </div>
+
+    <script>
+        const BASE_URL = "http://127.0.0.1:8000";
+
+        async function askQuestion() {
+            const url = document.getElementById("url").value;
+            const query = document.getElementById("query").value;
+            const status = document.getElementById("status");
+            const resultBox = document.getElementById("result");
+
+            if (!url || !query) {
+                alert("Please enter both URL and question");
+                return;
+            }
+
+            status.innerText = "⏳ Processing... (first time may take longer)";
+            resultBox.classList.add("hidden");
+
+            try {
+                const response = await fetch(`${BASE_URL}/ragify`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        query: query
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Something went wrong");
+                }
+
+                // Show Answer
+                document.getElementById("answer").innerText = data.answer;
+
+                // Show Sources
+                const sourcesList = document.getElementById("sources");
+                sourcesList.innerHTML = "";
+
+                data.sources.forEach(src => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `<a href="${src}" target="_blank" class="hover:underline">${src}</a>`;
+                    sourcesList.appendChild(li);
+                });
+
+                resultBox.classList.remove("hidden");
+                status.innerText = "✅ Done";
+
+            } catch (error) {
+                status.innerText = "❌ Error: " + error.message;
+            }
+        }
+    </script>
+
+</body>
+
+</html>
