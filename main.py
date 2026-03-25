@@ -11,6 +11,8 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_classic.chains import create_retrieval_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
+from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 import re
@@ -19,6 +21,8 @@ from bs4 import XMLParsedAsHTMLWarning
 import warnings
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+
+load_dotenv()  # Load environment variables from .env file
 
 
 def main(url: str):
@@ -80,7 +84,7 @@ def main(url: str):
 
     # 5. LLM & PROMPT TEMPLATE
 
-    llm = ChatOllama(model="deepseek-v3.1:671b-cloud", temperature=0.2)
+    llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0.2)
 
     # The chain expects {context} and {input}
     prompt = ChatPromptTemplate.from_template("""
