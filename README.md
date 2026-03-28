@@ -1,55 +1,123 @@
-# RAGify Docs API 📚🤖
+# 📚 RAGify Docs API
 
-A comprehensive API for scraping documentation from any URL and asking intelligent questions about it using **Retrieval-Augmented Generation (RAG)** powered by LangChain and Groq.
+<div align="center">
+
+**A Developer's Tool for Interactive Documentation**
+
+Scrape entire documentation recursively and ask AI-powered questions using Retrieval-Augmented Generation (RAG)
+
+![Python](https://img.shields.io/badge/Python-3.12+-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.135+-green)
+![LangChain](https://img.shields.io/badge/LangChain-1.2+-orange)
+![Groq](https://img.shields.io/badge/Groq-API-blueviolet)
+![MCP](https://img.shields.io/badge/MCP-Model%20Context%20Protocol-lightgrey)
+
+</div>
 
 ---
 
 ## 🎯 Overview
 
-**RAGify Docs API** is a developer-friendly tool that automates the process of extracting knowledge from documentation websites. Instead of manually reading through documentation, you can now:
+**RAGify Docs** is a comprehensive tool that helps developers quickly navigate and understand documentation by combining web scraping, vector embeddings, and AI-powered question answering. Instead of manually reading through documentation, simply provide a URL and ask questions—RAGify will find the most relevant answers backed by actual documentation content.
 
-- 🔗 Provide a documentation URL
-- 🤔 Ask any question about the content
-- 🧠 Get intelligent, sourced answers powered by AI
+### ✨ Key Features
 
-Built with **LangChain**, **FastAPI**, and **Groq's powerful LLM**, this tool handles the heavy lifting of document loading, chunking, embedding, retrieval, and generation—all with caching for performance.
+- 🕷️ **Recursive Web Scraping** - Automatically traverse and extract content from entire documentation websites
+- 🧠 **Vector Embeddings** - Convert documentation into semantic embeddings using HuggingFace models
+- 🎯 **Smart Retrieval** - Use Max Marginal Relevance (MMR) to fetch diverse and relevant context
+- 🤖 **AI-Powered Answers** - Leverage Groq's fast language models for accurate responses
+- ⚡ **Intelligent Caching** - Reuse embeddings across multiple queries on the same documentation
+- 🔌 **Multiple Interfaces** - Access via REST API, MCP Server, or direct Python module
+- 📍 **Source Attribution** - Get links to the exact documentation pages used to answer your questions
+- 🚀 **Production-Ready** - Built with FastAPI and async support for scalable deployments
 
 ---
 
-## 🚀 Quick Start
+## 🏗️ Project Structure
+
+```
+RAGify-Docs-API/
+├── main.py              # Core RAG engine - documentation scraping & question answering
+├── app.py               # FastAPI REST API server
+├── mcp_server.py        # MCP (Model Context Protocol) server for Claude/AI integrations
+├── pyproject.toml       # Project metadata and dependencies
+├── requirements.txt     # Python package requirements
+└── README.md            # This file
+```
+
+### Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    RAGify Docs API                      │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐  │
+│  │  FastAPI     │  │  MCP Server  │  │   Python    │  │
+│  │  (/ragify)   │  │ (ask_docs)   │  │   Module    │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬──────┘  │
+│         │                 │                  │         │
+│         └─────────────────┼──────────────────┘         │
+│                           │                           │
+│                    ┌──────▼───────┐                   │
+│                    │   main.py    │                   │
+│                    │  (RAG Core)  │                   │
+│                    └──────┬───────┘                   │
+│                           │                           │
+│         ┌─────────────────┼─────────────────┐         │
+│         │                 │                 │         │
+│    ┌────▼────┐      ┌─────▼──────┐   ┌────▼─────┐  │
+│    │ Scraper │      │ Embeddings │   │    LLM   │  │
+│    │ (URL)   │      │  (HF)      │   │  (Groq) │  │
+│    └────┬────┘      └─────┬──────┘   └────┬─────┘  │
+│         │                 │                │       │
+│         └─────────────────┼────────────────┘       │
+│                           │                        │
+│                    ┌──────▼────────┐              │
+│                    │ Cache Storage │              │
+│                    │    (In-Mem)   │              │
+│                    └───────────────┘              │
+│                                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Installation
 
 ### Prerequisites
 
-- Python 3.12 or higher
-- Groq API key (free tier available at [console.groq.com](https://console.groq.com))
+- Python 3.12+
+- pip or uv package manager
+- API keys for Groq (optional alternative: use Ollama locally)
 
-### Installation
+### Setup Steps
 
-1. **Clone or navigate to the project directory:**
+1. **Clone the repository**
 
    ```bash
+   git clone <repository-url>
    cd RAGify-Docs-API
    ```
 
-2. **Create a virtual environment:**
+2. **Create a virtual environment**
 
    ```bash
    python -m venv .venv
-   .venv\Scripts\activate  # On Windows
+   .venv\Scripts\activate  # Windows
    # or
-   source .venv/bin/activate  # On macOS/Linux
+   source .venv/bin/activate  # macOS/Linux
    ```
 
-3. **Install dependencies:**
+3. **Install dependencies**
 
    ```bash
    pip install -r requirements.txt
-   # or
-   pip install -e .
+   # or using uv
+   uv sync
    ```
 
-4. **Set up environment variables:**
-   Create a `.env` file in the project root:
+4. **Create a `.env` file** (Optional - for API keys)
 
    ```env
    GROQ_API_KEY=your_groq_api_key_here
@@ -59,138 +127,26 @@ Built with **LangChain**, **FastAPI**, and **Groq's powerful LLM**, this tool ha
 
 ## 📖 Usage
 
-### Option 1: FastAPI Server
+### Option 1: FastAPI REST API
 
-Start the API server:
-
-```bash
-uvicorn app:app --reload
-```
-
-The API will be available at `http://localhost:8000`
-
-**API Documentation:**
-
-- Interactive Docs: `http://localhost:8000/docs` (Swagger UI)
-- Alternative Docs: `http://localhost:8000/redoc`
-
-### Option 2: Interactive CLI
-
-Run the interactive mode:
+**Start the server:**
 
 ```bash
-python main.py
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
 
-You'll be prompted to:
-
-1. Enter a documentation URL (e.g., `https://docs.langchain.com/oss/python/langchain/overview`)
-2. Ask questions about the scraped documentation
-3. View answers with source URLs
-
----
-
-## 🔌 API Endpoints
-
-### `GET /`
-
-Welcome endpoint with basic information.
-
-**Response:**
-
-```json
-{
-  "message": "Welcome to the RAGify Docs API. Use the /ragify endpoint to ask questions about documentation from a given URL."
-}
-```
-
-### `POST /ragify`
-
-Main endpoint for asking questions about documentation.
-
-**Request Body:**
-
-```json
-{
-  "url": "https://docs.langchain.com/oss/python/langchain/overview",
-  "query": "What is LangChain?"
-}
-```
-
-**Response:**
-
-```json
-{
-  "answer": "LangChain is a framework for developing applications powered by language models...",
-  "sources": [
-    "https://docs.langchain.com/oss/python/langchain/overview",
-    "https://docs.langchain.com/oss/python/langchain/guides"
-  ]
-}
-```
-
-**Status Codes:**
-
-- `200` — Success
-- `500` — Error (RAG initialization or chain invocation failed)
-
----
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────┐
-│             FastAPI Server                   │
-│          (app.py with CORS)                 │
-└────────────┬────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────────────────────────┐
-│      URL Caching Layer                      │
-│   (Avoid re-processing same URLs)           │
-└────────────┬────────────────────────────────┘
-             │
-             ▼
-┌─────────────────────────────────────────────┐
-│         RAG Pipeline (main.py)              │
-├─────────────────────────────────────────────┤
-│  1. RecursiveUrlLoader → Scrape docs        │
-│  2. RecursiveCharacterTextSplitter          │
-│  3. HuggingFace Embeddings                  │
-│  4. InMemoryVectorStore                     │
-│  5. MMR Retriever (k=5, diverse results)    │
-│  6. ChatGroq LLM (openai/gpt-oss-120b)      │
-│  7. LangChain RAG Chain                     │
-└─────────────────────────────────────────────┘
-```
-
-### Component Details
-
-| Component | Purpose |
-|-----------|---------|
-| **RecursiveUrlLoader** | Crawls documentation pages recursively with custom HTML extraction |
-| **RecursiveCharacterTextSplitter** | Splits documents (1000 chars/chunk, 200 char overlap) |
-| **HuggingFace Embeddings** | Converts text to vectors using `sentence-transformers/all-MiniLM-L6-v2` |
-| **InMemoryVectorStore** | Stores embeddings for semantic search |
-| **MMR Retriever** | Returns diverse, relevant documents (5 best from 10 candidates) |
-| **ChatGroq** | LLM for generating answers (model: `openai/gpt-oss-120b`, temp: 0.2) |
-
----
-
-## 💻 Example Usage
-
-### Using cURL
+**Make a request:**
 
 ```bash
 curl -X POST "http://localhost:8000/ragify" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://docs.langchain.com/oss/python/langchain/overview",
-    "query": "What is the purpose of LangChain?"
+    "query": "What is LangChain?"
   }'
 ```
 
-### Using Python Requests
+**Python example:**
 
 ```python
 import requests
@@ -198,104 +154,233 @@ import requests
 response = requests.post(
     "http://localhost:8000/ragify",
     json={
-        "url": "https://docs.langchain.com/oss/python/langchain/overview",
-        "query": "How do I create a RAG chain?"
+        "url": "https://docs.python.org/3/",
+        "query": "How do I create a list?"
     }
 )
 
 print(response.json())
+# {
+#     "answer": "...",
+#     "sources": ["https://docs.python.org/3/..."]
+# }
 ```
 
-### Using JavaScript/Fetch
+**API Documentation:**
 
-```javascript
-fetch("http://localhost:8000/ragify", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    url: "https://docs.langchain.com/oss/python/langchain/overview",
-    query: "What are chains in LangChain?"
-  })
+- Interactive docs: `http://localhost:8000/docs` (Swagger UI)
+- ReDoc: `http://localhost:8000/redoc`
+
+---
+
+### Option 2: MCP Server
+
+**Start the MCP server:**
+
+```bash
+python mcp_server.py
+```
+
+Default configuration:
+
+- Host: `0.0.0.0`
+- Port: `8000` (or from `PORT` env variable)
+- Transport: HTTP Streamable
+
+---
+
+### Option 3: Direct Python Module
+
+**Use RAGify in your own Python code:**
+
+```python
+from main import main
+
+# Initialize RAG for a documentation URL
+rag_chain = main("https://docs.langchain.com/oss/python/langchain/overview")
+
+# Ask questions
+response = rag_chain.invoke({
+    "input": "What is a retriever in LangChain?"
 })
-.then(res => res.json())
-.then(data => console.log(data));
+
+print(response["answer"])
+print(response["context"])  # List of source documents
 ```
 
 ---
 
-## ⚙️ Configuration
+## 🔑 Configuration
 
 ### Environment Variables
 
-Create a `.env` file to configure the application:
-
 ```env
-# Groq API Key (required)
-GROQ_API_KEY=your_api_key_here
+# Groq API Configuration
+GROQ_API_KEY=your_key_here
+GROQ_MODEL=openai/gpt-oss-120b
 
-# Optional: Customize embedding model
-# EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+# Or use Ollama instead of Groq (local inference)
+# Uncomment in main.py: llm = ChatOllama(model="your-model")
 
-# Optional: Customize LLM model
-# LLM_MODEL=openai/gpt-oss-120b
+# MCP Server Port
+PORT=8000
 ```
 
-### Tunable Parameters (in [main.py](main.py))
+### Customization in `main.py`
+
+**Chunk size and overlap:**
 
 ```python
-# Chunk size and overlap
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,      # Increase for longer context
+    chunk_size=1000,      # Increase for longer contexts
     chunk_overlap=200     # Increase for better continuity
 )
+```
 
-# Retriever settings
+**Embedding model:**
+
+```python
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+    # Or use: "all-mpnet-base-v2" (larger, more accurate)
+)
+```
+
+**Retrieval parameters:**
+
+```python
 retriever = vector_store.as_retriever(
     search_type="mmr",
     search_kwargs={
         "k": 5,           # Number of results to return
         "fetch_k": 10,    # Candidates to consider
-        "lambda_mult": 0.5  # 1.0 = relevance, 0.0 = diversity
+        "lambda_mult": 0.5 # Balances similarity vs diversity
     }
 )
+```
 
-# LLM settings
-llm = ChatGroq(
-    model="openai/gpt-oss-120b",
-    temperature=0.2      # Lower = factual, Higher = creative
-)
+**LLM selection:**
+
+```python
+# Use Groq (fast, requires API key)
+llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0.2)
+
+# OR use Ollama locally (no API key needed)
+# llm = ChatOllama(model="llama2", temperature=0.2)
 ```
 
 ---
 
-## 🛠️ Development & Debugging
+## 📋 API Reference
 
-### Run with hot-reload
+### FastAPI Endpoints
 
-```bash
-uvicorn app:app --reload
+#### `POST /ragify`
+
+Ask a question about documentation.
+
+**Request:**
+
+```json
+{
+  "url": "https://docs.example.com",
+  "query": "How do I get started?"
+}
 ```
 
-### Run tests (if added)
+**Response:**
 
-```bash
-pytest
+```json
+{
+  "answer": "To get started with Example...",
+  "sources": [
+    "https://docs.example.com/getting-started",
+    "https://docs.example.com/installation"
+  ]
+}
 ```
 
-### Check for issues
+**Status Codes:**
 
-```bash
-# Verify dependencies
-pip check
+- `200` - Success
+- `500` - RAG initialization or invocation error
 
-# Lint code
-pylint app.py main.py
+---
+
+#### `GET /`
+
+Health check and welcome message.
+
+**Response:**
+
+```json
+{
+  "message": "Welcome to the RAGify Docs API! Use the /ragify endpoint to ask questions about documentation."
+}
 ```
 
 ---
 
-## 🎉 Happy RAGifying
+### MCP Tool: `ask_docs`
 
-Build smarter, faster, and more informed applications with RAGify Docs API.
+Accessible through MCP clients (Claude, etc.)
 
-**RAGify Docs API** — Because great documentation deserves great answers.
+**Parameters:**
+
+- `url` (string): Documentation URL to scrape
+- `query` (string): Question to ask
+
+**Returns:**
+
+```json
+{
+  "answer": "...",
+  "sources": ["url1", "url2"]
+}
+```
+
+Or on error:
+
+```json
+{
+  "error": "Error message"
+}
+```
+
+---
+
+## 🚀 Deployment
+
+### Docker (Optional)
+
+```dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+**Build and run:**
+
+```bash
+docker build -t ragify-docs-api .
+docker run -p 8000:8000 -e GROQ_API_KEY=your_key ragify-docs-api
+```
+
+---
+
+<div align="center">
+
+**Built with ❤️ for developers who love great documentation**
+
+⭐ If you found this useful, please star the repository!
+
+</div>
